@@ -1,86 +1,73 @@
-"""Compare an advisory snapshot with an explicitly scoped inventory."""
+"""Build an evidence-linked incident response decision brief."""
 
-from runtime import choice, cli, obj, report, rows, strings, text, unique
+from runtime import choice, cli, instant, report, rows, strings, text, unique, utc
 
 
 def analyze(data):
-    advisory = obj(data.get("advisory"), "advisory")
-    inventory = obj(data.get("inventory"), "inventory")
-    advisory_id = text(advisory.get("id"), "advisory.id")
-    vendor = text(advisory.get("vendor"), "advisory.vendor").casefold()
-    product = text(advisory.get("product"), "advisory.product").casefold()
-    versions = set(strings(advisory.get("affected_versions"), "affected_versions"))
-    if not versions:
-        raise ValueError("affected_versions must contain explicitly verified versions")
-    source = text(advisory.get("source"), "advisory.source")
-    exploitation = choice(
-        advisory.get("exploitation"),
-        ["observed", "not_reported", "unknown"],
-        "exploitation",
-    )
-    scope = text(inventory.get("scope"), "inventory.scope")
-    assets = rows(inventory.get("assets"), "inventory.assets")
-    unique(assets)
-    findings = []
-    for asset in assets:
-        asset_vendor = text(asset.get("vendor"), "asset.vendor").casefold()
-        asset_product = text(asset.get("product"), "asset.product").casefold()
-        if (asset_vendor, asset_product) != (vendor, product):
-            continue
-        version = asset.get("version")
-        if version is not None:
-            version = text(version, "asset.version")
-        exposure = choice(
-            asset.get("exposure", "unknown"),
-            ["internet", "internal", "unknown"],
-            "asset.exposure",
-        )
-        status = (
-            "version_unknown"
-            if version is None
-            else "affected_version_match"
-            if version in versions
-            else "version_not_listed"
-        )
-        priority = "verify"
-        if status == "affected_version_match":
-            priority = (
-                "expedite"
-                if exploitation == "observed" or exposure == "internet"
-                else "review"
-            )
-        findings.append(
+    case_id = text(data.get("case_id"), "case_id")
+    scope = text(data.get("scope"), "scope")
+    evidence = rows(data.get("evidence"), "evidence")
+    unique(evidence)
+    evidence_ids = {item["id"] for item in evidence}
+    timeline = []
+    for item in evidence:
+        timestamp = instant(item.get("timestamp"), "evidence.timestamp")
+        timeline.append(
             {
-                "asset": asset["id"],
-                "version": version,
-                "status": status,
-                "exposure": exposure,
-                "review_priority": priority,
-                "evidence": [f"inventory:{asset['id']}", source],
+                "id": item["id"],
+                "timestamp": utc(timestamp),
+                "source": text(item.get("source"), "evidence.source"),
+                "observation": text(item.get("observation"), "evidence.observation"),
+                "type": "reported_observation",
             }
         )
-    matches = sum(f["status"] == "affected_version_match" for f in findings)
+    timeline.sort(
+        key=lambda item: (instant(item["timestamp"], "timestamp"), item["id"])
+    )
+    actions = rows(data.get("proposed_actions", []), "proposed_actions")
+    unique(actions)
+    proposals = []
+    for action in actions:
+        refs = strings(action.get("evidence_ids"), "action.evidence_ids")
+        if not refs or not set(refs).issubset(evidence_ids):
+            raise ValueError("every action needs known, nonempty evidence_ids")
+        proposals.append(
+            {
+                "id": action["id"],
+                "type": "proposal_only",
+                "action": text(action.get("action"), "action.action"),
+                "owner": text(action.get("owner"), "action.owner"),
+                "impact": choice(
+                    action.get("impact"), ["low", "medium", "high"], "action.impact"
+                ),
+                "rollback": text(action.get("rollback"), "action.rollback"),
+                "evidence_ids": refs,
+                "execution": "not_performed",
+            }
+        )
+    gaps = strings(data.get("unknowns", []), "unknowns")
     return report(
-        "Threat Intelligence Agent",
+        "IR Expert Agent",
         {
-            "advisory": advisory_id,
+            "case_id": case_id,
             "scope": scope,
-            "assets_examined": len(assets),
-            "product_candidates": len(findings),
-            "affected_version_matches": matches,
-            "assessment": "potential_exposure" if matches else "inconclusive",
+            "observations": len(timeline),
+            "proposals": len(proposals),
+            "unknowns": len(gaps),
+            "disposition": "analyst_review_required",
         },
-        findings,
-        [
-            "Exact vendor/product and exact version matching only; no aliases, ranges, backport or reachability analysis.",
-            "A listed vulnerable version does not prove exploitability or compromise; a non-listed version is not confirmed safe.",
-            "The input snapshot is not independently verified. Inventory completeness and source freshness are unknown.",
-            "Review priority is a transparent example heuristic, not CVSS, SSVC or a remediation SLA.",
+        timeline + proposals,
+        gaps
+        + [
+            "Observations are supplied by the caller and have not been independently corroborated.",
+            "The brief does not determine breach status, regulatory duties, incident closure or authorization to act.",
+            "Evidence references are validated for existence, not for authenticity or chain of custody.",
         ],
         [
-            "Verify advisory scope, version ranges and exploitation evidence against primary sources.",
-            "Check runtime version, configuration, reachability and mitigations for each candidate.",
-            "Record missing inventory coverage and assign an owner to unresolved exposure.",
+            "Validate the scope and preserve source evidence with collection metadata.",
+            "Separate confirmed facts, hypotheses and unknowns in the incident record.",
+            "Have the incident owner approve specific response actions through the established process.",
+            "Define recovery verification and closure criteria before declaring the incident resolved.",
         ],
     )
 

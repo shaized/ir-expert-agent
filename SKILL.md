@@ -1,18 +1,18 @@
 ---
-name: threat-intel-agent
-description: Model-agnostic threat intelligence skill with a local advisory-to-inventory matching tool and synthetic examples.
+name: ir-expert-agent
+description: Incident response assistant skill with evidence-linked decision briefs, explicit unknowns and proposed-action review.
 ---
 
-# Threat Intelligence Agent
+# IR Expert Agent
 
-Turn an advisory into an evidence-backed exposure review.
+Structure the response decision before taking action.
 
 ## Workflow
 
-1. Identify the advisory, affected product, source dates and the assessment scope. Prefer primary vendor advisories and authoritative exploitation evidence.
-2. Compare the advisory with the supplied asset inventory using agent.py. The helper accepts exact versions only; manually resolve version ranges, packaging and backports with evidence.
-3. Assess runtime presence, configuration, exposure, required attacker access and controls separately. Record what is measured and what is inferred.
-4. Return an exposure assessment with evidence references, missing coverage, confidence reasoning and specific next steps. A version match establishes a candidate, not compromise.
+1. Establish incident scope, current impact, decision owner and the authority already granted for response work.
+2. Preserve original evidence and collection metadata. Use agent.py to validate references and create a chronological decision brief; do not claim that the helper establishes chain of custody.
+3. Distinguish observations, hypotheses, confirmed facts and unknowns. For proposed containment, document the exact target, likely impact, owner, rollback and supporting evidence.
+4. Support human decisions on containment, eradication and recovery. State verification and closure criteria. A recommendation does not imply permission to execute it.
 
 ## Local evidence tool
 

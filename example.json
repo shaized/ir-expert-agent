@@ -1,39 +1,34 @@
 {
-  "advisory": {
-    "id": "DEMO-2026-001",
-    "vendor": "Example Vendor",
-    "product": "Example Gateway",
-    "affected_versions": [
-      "2.4.0",
-      "2.4.1"
-    ],
-    "source": "https://example.org/advisories/DEMO-2026-001",
-    "exploitation": "unknown"
-  },
-  "inventory": {
-    "scope": "Fictional training lab snapshot",
-    "assets": [
-      {
-        "id": "lab-gateway",
-        "vendor": "Example Vendor",
-        "product": "Example Gateway",
-        "version": "2.4.1",
-        "exposure": "internet"
-      },
-      {
-        "id": "lab-worker",
-        "vendor": "Example Vendor",
-        "product": "Example Gateway",
-        "version": null,
-        "exposure": "internal"
-      },
-      {
-        "id": "lab-updated",
-        "vendor": "Example Vendor",
-        "product": "Example Gateway",
-        "version": "2.5.0",
-        "exposure": "internal"
-      }
-    ]
-  }
+  "case_id": "DEMO-IR-001",
+  "scope": "Fictional identity-provider investigation",
+  "evidence": [
+    {
+      "id": "ev-1",
+      "timestamp": "2026-01-15T10:04:00Z",
+      "source": "Synthetic identity log",
+      "observation": "Successful sign-in followed a short series of failures."
+    },
+    {
+      "id": "ev-2",
+      "timestamp": "2026-01-15T10:08:00Z",
+      "source": "Synthetic analyst note",
+      "observation": "The account owner has not yet confirmed the sign-in."
+    }
+  ],
+  "proposed_actions": [
+    {
+      "id": "proposal-1",
+      "action": "Consider revoking the suspicious session after identity verification.",
+      "owner": "Incident lead",
+      "impact": "medium",
+      "rollback": "Restore access through the approved sign-in process if the activity is legitimate.",
+      "evidence_ids": [
+        "ev-1",
+        "ev-2"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Device context and post-login activity have not been collected."
+  ]
 }

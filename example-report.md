@@ -1,53 +1,54 @@
-# Threat Intelligence Agent
+# IR Expert Agent
 
 ## Summary
 
-- **advisory:** DEMO-2026-001
-- **scope:** Fictional training lab snapshot
-- **assets examined:** 3
-- **product candidates:** 3
-- **affected version matches:** 1
-- **assessment:** potential\_exposure
+- **case id:** DEMO-IR-001
+- **scope:** Fictional identity-provider investigation
+- **observations:** 2
+- **proposals:** 1
+- **unknowns:** 1
+- **disposition:** analyst\_review\_required
 
 ## Findings
 
 ### Finding 1
 
-- **asset:** lab-gateway
-- **version:** 2\.4\.1
-- **status:** affected\_version\_match
-- **exposure:** internet
-- **review priority:** expedite
-- **evidence:** \["inventory:lab-gateway", "https://example\.org/advisories/DEMO-2026-001"\]
+- **id:** ev-1
+- **timestamp:** 2026-01-15T10:04:00Z
+- **source:** Synthetic identity log
+- **observation:** Successful sign-in followed a short series of failures\.
+- **type:** reported\_observation
 
 ### Finding 2
 
-- **asset:** lab-worker
-- **version:** null
-- **status:** version\_unknown
-- **exposure:** internal
-- **review priority:** verify
-- **evidence:** \["inventory:lab-worker", "https://example\.org/advisories/DEMO-2026-001"\]
+- **id:** ev-2
+- **timestamp:** 2026-01-15T10:08:00Z
+- **source:** Synthetic analyst note
+- **observation:** The account owner has not yet confirmed the sign-in\.
+- **type:** reported\_observation
 
 ### Finding 3
 
-- **asset:** lab-updated
-- **version:** 2\.5\.0
-- **status:** version\_not\_listed
-- **exposure:** internal
-- **review priority:** verify
-- **evidence:** \["inventory:lab-updated", "https://example\.org/advisories/DEMO-2026-001"\]
+- **id:** proposal-1
+- **type:** proposal\_only
+- **action:** Consider revoking the suspicious session after identity verification\.
+- **owner:** Incident lead
+- **impact:** medium
+- **rollback:** Restore access through the approved sign-in process if the activity is legitimate\.
+- **evidence ids:** \["ev-1", "ev-2"\]
+- **execution:** not\_performed
 
 
 ## Limitations
 
-- Exact vendor/product and exact version matching only; no aliases, ranges, backport or reachability analysis\.
-- A listed vulnerable version does not prove exploitability or compromise; a non-listed version is not confirmed safe\.
-- The input snapshot is not independently verified\. Inventory completeness and source freshness are unknown\.
-- Review priority is a transparent example heuristic, not CVSS, SSVC or a remediation SLA\.
+- Device context and post-login activity have not been collected\.
+- Observations are supplied by the caller and have not been independently corroborated\.
+- The brief does not determine breach status, regulatory duties, incident closure or authorization to act\.
+- Evidence references are validated for existence, not for authenticity or chain of custody\.
 
 ## Next Steps
 
-- Verify advisory scope, version ranges and exploitation evidence against primary sources\.
-- Check runtime version, configuration, reachability and mitigations for each candidate\.
-- Record missing inventory coverage and assign an owner to unresolved exposure\.
+- Validate the scope and preserve source evidence with collection metadata\.
+- Separate confirmed facts, hypotheses and unknowns in the incident record\.
+- Have the incident owner approve specific response actions through the established process\.
+- Define recovery verification and closure criteria before declaring the incident resolved\.
